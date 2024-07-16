@@ -4,11 +4,10 @@ const { expect } = require("chai");
 describe("Clone", function () {
   describe("Clone", function () {
     before(async () => {
-      const ERC20 = await hre.ethers.getContractFactory("ERC20GovMinimal");
-      const Clone = await hre.ethers.getContractFactory("Clone");
+      const ERC20 = await hre.ethers.getContractFactory("Token");
+      const Clone = await hre.ethers.getContractFactory("CloneFactory");
 
       token = await ERC20.deploy();
-      console.log(token.target);
       cloneFactory = await Clone.deploy();
     })
 
@@ -16,7 +15,6 @@ describe("Clone", function () {
       const bytecode0 = await hre.ethers.provider.getCode(token.target);
 
       const cloneAddress = await cloneFactory.clone.staticCall(token.target);
-      console.log(cloneAddress);
 
       await cloneFactory.clone(token.target);
       const bytecode1 = await hre.ethers.provider.getCode(cloneAddress);
@@ -30,13 +28,15 @@ describe("Clone", function () {
       const bytecode0 = await hre.ethers.provider.getCode(token.target);
 
       const cloneAddress = await cloneFactory.clone2.staticCall(token.target, salt);
-      console.log(cloneAddress);
 
       await cloneFactory.clone2(token.target, salt);
       const bytecode1 = await hre.ethers.provider.getCode(cloneAddress);
       
       expect(bytecode0).to.equal(bytecode1);
       expect(token.target).to.not.equal(cloneAddress);
+
+      const predictedAddress = await cloneFactory.predictClonedAddress(token.target, salt);
+      expect(predictedAddress).to.equal(cloneAddress);
     });
 
   });
